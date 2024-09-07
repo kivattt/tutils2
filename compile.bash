@@ -7,5 +7,5 @@ fi
 
 ldflags="-s -w"
 
-CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/ls
-mv ./ls ./bin/ls # Go is an awful choice for multiple binaries in a single project
+CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/ls && mv ./ls ./bin/ls
+CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/pwd && mv ./pwd ./bin/pwd

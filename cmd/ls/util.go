@@ -108,50 +108,50 @@ func FileColor(stat os.FileInfo, path string) string {
 	if stat != nil {
 		if stat.IsDir() {
 			return "\x1b[1;34m" // Blue, Bold
-//			return ret.Foreground(tcell.ColorBlue).Bold(true)
+			//			return ret.Foreground(tcell.ColorBlue).Bold(true)
 		} else if stat.Mode().IsRegular() {
 			if stat.Mode()&0111 != 0 || (runtime.GOOS == "windows" && hasSuffixFromList(path, windowsExecutableTypes)) { // Executable file
 				return "\x1b[1;32m" // Green, Bold
-//				return ret.Foreground(tcell.NewRGBColor(0, 255, 0)).Bold(true) // Green
+				//				return ret.Foreground(tcell.NewRGBColor(0, 255, 0)).Bold(true) // Green
 			}
 		} else {
 			return "\x1b[1;30m" // Black, Bold (Dark Gray)
-//			return ret.Foreground(tcell.ColorDarkGray)
+			//			return ret.Foreground(tcell.ColorDarkGray)
 		}
 	}
 
 	if hasSuffixFromList(path, imageTypes) {
 		return "\x1b[0;33m" // Yellow
-//		return ret.Foreground(tcell.ColorYellow)
+		//		return ret.Foreground(tcell.ColorYellow)
 	}
 
 	if hasSuffixFromList(path, videoTypes) {
 		return "\x1b[1;35m" // Purple, Bold (Hot Pink)
-//		return ret.Foreground(tcell.ColorHotPink)
+		//		return ret.Foreground(tcell.ColorHotPink)
 	}
 
 	if hasSuffixFromList(path, archiveTypes) {
 		return "\x1b[0;31m" // Red
-//		return ret.Foreground(tcell.ColorRed)
+		//		return ret.Foreground(tcell.ColorRed)
 	}
 
 	if hasSuffixFromList(path, codeTypes) {
 		return "\x1b[0;36m" // Cyan (Aqua)
-//		return ret.Foreground(tcell.ColorAqua)
+		//		return ret.Foreground(tcell.ColorAqua)
 	}
 
 	if hasSuffixFromList(path, audioTypes) {
 		return "\x1b[0;35m" // Purple
-//		return ret.Foreground(tcell.ColorPurple)
+		//		return ret.Foreground(tcell.ColorPurple)
 	}
 
 	if hasSuffixFromList(path, documentTypes) {
 		return "\x1b[0;37m" // White
-//		return ret.Foreground(tcell.ColorGray)
+		//		return ret.Foreground(tcell.ColorGray)
 	}
 
 	return "" // Nothing (default)
-//	return ret.Foreground(tcell.ColorDefault)
+	//	return ret.Foreground(tcell.ColorDefault)
 }
 
 func FoldersAtBeginning(dirEntries []os.DirEntry) []os.DirEntry {
