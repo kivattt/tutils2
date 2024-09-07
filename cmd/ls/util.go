@@ -154,10 +154,10 @@ func FileColor(stat os.FileInfo, path string) string {
 	//	return ret.Foreground(tcell.ColorDefault)
 }
 
-func FoldersAtBeginning(dirEntries []os.DirEntry) []os.DirEntry {
+func FoldersAtBeginning(entries []os.DirEntry) []os.DirEntry {
 	var folders []os.DirEntry
 	var files []os.DirEntry
-	for _, entry := range dirEntries {
+	for _, entry := range entries {
 		if entry.IsDir() {
 			folders = append(folders, entry)
 		} else {
@@ -165,7 +165,7 @@ func FoldersAtBeginning(dirEntries []os.DirEntry) []os.DirEntry {
 		}
 	}
 
-	if len(folders)+len(files) != len(dirEntries) {
+	if len(folders)+len(files) != len(entries) {
 		panic("FoldersAtBeginning failed!")
 	}
 
