@@ -21,6 +21,8 @@ var validSortByValues = [...]string{
 func main() {
 	h := flag.Bool("help", false, "display this help and exit")
 	all := flag.Bool("all", false, "Show files starting with '.'")
+	foldersFirst := flag.Bool("folders-first", false, "show folders first")
+	summary := flag.Bool("summary", false, "Folder stats")
 	sortBy := flag.String("sort-by", "none", "sort files ("+strings.Join(validSortByValues[:], ", ")+")")
 
 	getopt.CommandLine.SetOutput(os.Stdout)
@@ -28,6 +30,7 @@ func main() {
 	getopt.Aliases(
 		"h", "help",
 		"a", "all",
+		"f", "folders-first",
 	)
 
 	err := getopt.CommandLine.Parse(os.Args[1:])
@@ -56,6 +59,28 @@ func main() {
 		log.Fatal("Failed to read directory '" + path + "'")
 	}
 
+	// Just folder stats, don't need any sorting
+	if *summary {
+		folderCount := 0
+		fileCount := 0
+		hiddenFileCount := 0
+		for _, v := range entries {
+			if strings.HasPrefix(v.Name(), ".") {
+				hiddenFileCount++
+			} else if v.IsDir() {
+				folderCount++
+			} else {
+				fileCount++
+			}
+		}
+
+		fmt.Println(folderCount, "folders")
+		fmt.Println(fileCount, "files")
+		fmt.Println(hiddenFileCount, "hidden files")
+		fmt.Println(folderCount+fileCount+hiddenFileCount, "total")
+		os.Exit(0)
+	}
+
 	switch *sortBy {
 	case "modified":
 		slices.SortStableFunc(entries, func(a, b fs.DirEntry) int {
@@ -82,7 +107,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	entries = FoldersAtBeginning(entries)
+	if *foldersFirst {
+		entries = FoldersAtBeginning(entries)
+	}
 
 	for _, e := range entries {
 		if !*all && strings.HasPrefix(e.Name(), ".") {
