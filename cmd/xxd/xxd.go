@@ -165,6 +165,8 @@ func main() {
 					break
 				}
 			}
+
+			f.Close()
 		}
 
 		if len(getopt.CommandLine.Args()) > 1 {
