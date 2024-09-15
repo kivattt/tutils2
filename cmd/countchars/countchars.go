@@ -66,7 +66,7 @@ func main() {
 	}
 
 	type kv struct {
-		Key byte
+		Key   byte
 		Value uint64
 	}
 	var ss []kv

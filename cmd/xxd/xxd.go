@@ -78,9 +78,9 @@ func handleBuf(buf []byte, size, width, nthLineOutput int, colorsEnabled, decima
 			}
 
 			if colorsEnabled {
-				fmt.Print(leadingZeroesGray(fmt.Sprintf(formatString, i + nthLineOutput*width)))
+				fmt.Print(leadingZeroesGray(fmt.Sprintf(formatString, i+nthLineOutput*width)))
 			} else {
-				fmt.Print(fmt.Sprintf(formatString, i + nthLineOutput*width))
+				fmt.Print(fmt.Sprintf(formatString, i+nthLineOutput*width))
 			}
 		}
 
@@ -93,7 +93,7 @@ func handleBuf(buf []byte, size, width, nthLineOutput int, colorsEnabled, decima
 			}
 			nCharsPrinted += 2
 
-			if j % 2 == 1 && j != min(size, i+width) - 1 {
+			if j%2 == 1 && j != min(size, i+width)-1 {
 				fmt.Print(" ")
 				nCharsPrinted++
 			}
@@ -102,7 +102,7 @@ func handleBuf(buf []byte, size, width, nthLineOutput int, colorsEnabled, decima
 		if colorsEnabled {
 			fmt.Print("\x1b[0m")
 		}
-		fmt.Print(strings.Repeat(" ", max(0, (width/2 + width*2)-nCharsPrinted)) + " " + coloredText(buf[i:min(size, i+16)], colorsEnabled))
+		fmt.Print(strings.Repeat(" ", max(0, (width/2+width*2)-nCharsPrinted)) + " " + coloredText(buf[i:min(size, i+16)], colorsEnabled))
 		fmt.Println()
 		nLinesOutput++
 	}
@@ -143,7 +143,7 @@ func main() {
 	}
 
 	buf := make([]byte, 32) // This has to be like, a power of two more than or equal to 32
-	width := 16 // If you change this it doesn't output correctly...
+	width := 16             // If you change this it doesn't output correctly...
 
 	nthLineOutput := 0
 
@@ -187,7 +187,7 @@ func main() {
 
 	stat, _ := os.Stdin.Stat()
 	// Not piped input
-	if stat.Mode() & os.ModeCharDevice != 0 {
+	if stat.Mode()&os.ModeCharDevice != 0 {
 		for {
 			n, err := os.Stdin.Read(buf)
 			nthLineOutput += handleBuf(buf, n, width, nthLineOutput, colorToUse != "never", *decimal)

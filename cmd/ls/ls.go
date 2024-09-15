@@ -61,7 +61,7 @@ func main() {
 	help := flag.Bool("help", false, "display this help and exit")
 	all := flag.Bool("all", false, "show hidden files starting with '.'")
 	directoriesFirst := flag.Bool("directories-first", false, "show directories first")
-	sortBy := flag.String("sort-by", "none", "sort files (" + strings.Join(validSortByValues[:], ", ") + ")")
+	sortBy := flag.String("sort-by", "none", "sort files ("+strings.Join(validSortByValues[:], ", ")+")")
 	summary := flag.Bool("summary", false, "folder stats")
 	color := flag.String("color", "auto", "colorize the output [auto, always, never]")
 
@@ -101,7 +101,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	
+
 	var paths []string
 	if len(getopt.CommandLine.Args()) == 0 {
 		paths = []string{cwd}
@@ -114,7 +114,7 @@ func main() {
 	for _, path := range paths {
 		stat, err := os.Stat(path)
 		if err != nil {
-			printError("Failed to stat: '" + path + "'", colorToUse != "never")
+			printError("Failed to stat: '"+path+"'", colorToUse != "never")
 			continue
 		}
 
@@ -125,7 +125,7 @@ func main() {
 
 		entries, err := os.ReadDir(path)
 		if err != nil {
-			printError("Failed to read directory '" + path + "'", colorToUse != "never")
+			printError("Failed to read directory '"+path+"'", colorToUse != "never")
 			continue
 		}
 
@@ -186,7 +186,7 @@ func main() {
 
 		info, err := e.Info()
 		if err != nil {
-			printError("Failed to stat: '" + e.Name() + "'", colorToUse != "never")
+			printError("Failed to stat: '"+e.Name()+"'", colorToUse != "never")
 			continue
 		}
 
