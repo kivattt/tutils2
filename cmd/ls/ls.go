@@ -112,6 +112,17 @@ func main() {
 	var allEntries []fs.DirEntry
 
 	for _, path := range paths {
+		stat, err := os.Stat(path)
+		if err != nil {
+			printError("Failed to stat: '" + path + "'", colorToUse != "never")
+			continue
+		}
+
+		if !stat.IsDir() {
+			allEntries = append(allEntries, fs.FileInfoToDirEntry(stat))
+			continue
+		}
+
 		entries, err := os.ReadDir(path)
 		if err != nil {
 			printError("Failed to read directory '" + path + "'", colorToUse != "never")
