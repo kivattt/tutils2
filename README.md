@@ -1,12 +1,12 @@
 Work-in-progress rewrite of [tutils](https://github.com/kivattt/tutils)
 
 Finished:
-- pwd
-- ascii
+- ls
 - xxd
 - cat
+- ascii
 - countchars
+- pwd
 
 Unfinished:
-- ls
 - hex

@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
 	"slices"
@@ -12,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/kivattt/getopt"
+	"golang.org/x/term"
 )
 
 var validSortByValues = [...]string{
@@ -47,19 +47,30 @@ func SortEntries(entries *[]fs.DirEntry, sortBy string) {
 	}
 }
 
+func printError(msg string, colorEnabled bool) {
+	if colorEnabled {
+		os.Stderr.WriteString("\x1b[1;31m") // Red
+	}
+	os.Stderr.WriteString(msg + "\n")
+	if colorEnabled {
+		os.Stderr.WriteString("\x1b[0m") // Reset
+	}
+}
+
 func main() {
-	h := flag.Bool("help", false, "display this help and exit")
-	all := flag.Bool("all", false, "Show files starting with '.'")
-	foldersFirst := flag.Bool("folders-first", false, "show folders first")
-	summary := flag.Bool("summary", false, "Folder stats")
-	sortBy := flag.String("sort-by", "none", "sort files ("+strings.Join(validSortByValues[:], ", ")+")")
+	help := flag.Bool("help", false, "display this help and exit")
+	all := flag.Bool("all", false, "show hidden files starting with '.'")
+	directoriesFirst := flag.Bool("directories-first", false, "show directories first")
+	sortBy := flag.String("sort-by", "none", "sort files (" + strings.Join(validSortByValues[:], ", ") + ")")
+	summary := flag.Bool("summary", false, "folder stats")
+	color := flag.String("color", "auto", "colorize the output [auto, always, never]")
 
 	getopt.CommandLine.SetOutput(os.Stdout)
 	getopt.CommandLine.Init("ls", flag.ExitOnError)
 	getopt.Aliases(
 		"h", "help",
 		"a", "all",
-		"f", "folders-first",
+		"d", "directories-first",
 	)
 
 	err := getopt.CommandLine.Parse(os.Args[1:])
@@ -67,7 +78,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	if *h {
+	if *help {
 		fmt.Println("Usage: " + filepath.Base(os.Args[0]) + " [OPTIONS] [FILES]")
 		fmt.Println("List files")
 		fmt.Println()
@@ -75,53 +86,36 @@ func main() {
 		os.Exit(0)
 	}
 
+	colorToUse := *color
+	if colorToUse == "auto" {
+		if !term.IsTerminal(int(os.Stdout.Fd())) {
+			colorToUse = "never" // Output is piped, don't colorize the output
+		}
+	}
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		cwd = os.Getenv("PWD")
 		if cwd == "" {
-			log.Fatal("PWD environment variable empty, unable to determine current working directory")
+			printError("PWD environment variable empty, unable to determine current working directory", colorToUse != "never")
+			os.Exit(1)
 		}
 	}
-
-	var allEntries []fs.DirEntry
-
+	
 	var paths []string
 	if len(getopt.CommandLine.Args()) == 0 {
 		paths = []string{cwd}
 	} else {
-		for _, e := range getopt.CommandLine.Args() {
-			stat, err := os.Stat(e)
-			if err != nil || !stat.IsDir() {
-				eAbs, err := filepath.Abs(e)
-				if err == nil && !slices.ContainsFunc(allEntries, func(e fs.DirEntry) bool {
-					// Only checks base, bad
-					return filepath.Base(eAbs) == e.Name()
-				}) {
-					allEntries = append(allEntries, fs.FileInfoToDirEntry(stat))
-				}
-				continue
-			}
-
-			isDuplicate := slices.ContainsFunc(paths, func(path string) bool {
-				pathAbs, pathErr := filepath.Abs(path)
-				eAbs, eErr := filepath.Abs(e)
-				if pathErr != nil || eErr != nil {
-					return false
-				}
-
-				return pathAbs == eAbs
-			})
-
-			if !isDuplicate {
-				paths = append(paths, e)
-			}
-		}
+		paths = getopt.CommandLine.Args()
 	}
+
+	var allEntries []fs.DirEntry
 
 	for _, path := range paths {
 		entries, err := os.ReadDir(path)
 		if err != nil {
-			log.Fatal("Failed to read directory '" + path + "'")
+			printError("Failed to read directory '" + path + "'", colorToUse != "never")
+			continue
 		}
 
 		allEntries = append(allEntries, entries...)
@@ -165,11 +159,12 @@ func main() {
 		fmt.Println()
 
 		fmt.Println(folderCount+hiddenFolderCount+fileCount+hiddenFileCount, "total")
+		os.Exit(0)
 	}
 
 	SortEntries(&allEntries, *sortBy)
 
-	if *foldersFirst {
+	if *directoriesFirst {
 		allEntries = FoldersAtBeginning(allEntries)
 	}
 
@@ -180,10 +175,18 @@ func main() {
 
 		info, err := e.Info()
 		if err != nil {
+			printError("Failed to stat: '" + e.Name() + "'", colorToUse != "never")
 			continue
 		}
-		fmt.Print(FileColor(info, e.Name()))
-		fmt.Print(e.Name())
-		fmt.Println("\x1b[0m") // Reset
+
+		if colorToUse != "never" {
+			fmt.Print(FileColor(info, e.Name()))
+		}
+
+		fmt.Println(e.Name())
+
+		if colorToUse != "never" {
+			fmt.Print("\x1b[0m")
+		}
 	}
 }

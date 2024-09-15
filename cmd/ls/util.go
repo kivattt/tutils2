@@ -121,7 +121,7 @@ func FileColor(stat os.FileInfo, path string) string {
 	}
 
 	if hasSuffixFromList(path, imageTypes) {
-		return "\x1b[0;33m" // Yellow
+		return "\x1b[1;33m" // Yellow
 		//		return ret.Foreground(tcell.ColorYellow)
 	}
 
@@ -131,7 +131,7 @@ func FileColor(stat os.FileInfo, path string) string {
 	}
 
 	if hasSuffixFromList(path, archiveTypes) {
-		return "\x1b[0;31m" // Red
+		return "\x1b[1;31m" // Red
 		//		return ret.Foreground(tcell.ColorRed)
 	}
 
