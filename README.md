@@ -11,7 +11,7 @@ Work-in-progress rewrite of [tutils](https://github.com/kivattt/tutils)
 
 # Building
 `./compile.sh`\
-The built binaries will be located in `./bin/`
+The built binaries will be located in the `bin` directory
 
 # Installing
 ```console
