@@ -1,4 +1,4 @@
-Work-in-progress rewrite of [tutils](https://github.com/kivattt/tutils)
+Replacements for some coreutils on Linux, rewrite of [tutils](https://github.com/kivattt/tutils)
 
 # Commands
 `ls` List files\
