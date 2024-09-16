@@ -13,3 +13,4 @@ CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/ascii && mv ./ascii ./bin/ascii
 CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/xxd && mv ./xxd ./bin/xxd
 CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/countchars && mv ./countchars ./bin/countchars
 CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/cat && mv ./cat ./bin/cat
+CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/hex && mv ./hex ./bin/hex
