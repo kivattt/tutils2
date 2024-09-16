@@ -10,7 +10,7 @@ Work-in-progress rewrite of [tutils](https://github.com/kivattt/tutils)
 `countchars` Show distribution of characters sorted\
 
 # Building
-`./compile.sh`
+`./compile.sh`\
 The built binaries will be located in `./bin/`
 
 # Installing
@@ -35,4 +35,5 @@ else
     echo "Could not find tutils2 programs in $tutils2path"
 fi
 ```
+
 Since adding `tutils2` to your path environment variable could break existing scripts that rely on system utilities specific behaviour, we use shell aliases so that shell scripts will continue to use the existing utilities, rather than `tutils2`.
