@@ -22,6 +22,13 @@ func printError(msg string, colorEnabled bool) {
 	}
 }
 
+func byteToLower(b byte) byte {
+	if b >= 'A' && b <= 'Z' {
+		return b + ('a' - 'A')
+	}
+	return b
+}
+
 func main() {
 	decode := flag.Bool("decode", false, "decode hexadecimal")
 	help := flag.Bool("help", false, "display this help and exit")
@@ -60,8 +67,8 @@ func main() {
 
 			for _, currentByte := range buf[:n] {
 				if bit {
-					left := strings.IndexByte(hexLookup, lastByte)
-					right := strings.IndexByte(hexLookup, currentByte)
+					left := strings.IndexByte(hexLookup, byteToLower(lastByte))
+					right := strings.IndexByte(hexLookup, byteToLower(currentByte))
 					if left != -1 && right != -1 {
 						anyData = true
 						os.Stdout.Write([]byte{byte(left<<4 | right)})
