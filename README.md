@@ -22,7 +22,7 @@ cd tutils2
 ```
 Then add this to your `.bashrc` file, and re-open a terminal
 ```bash
-tutils2path=̃~/tutils2/bin
+tutils2path=~/tutils2/bin
 if test -d $tutils2path; then
     alias ls="$tutils2path/ls"
     alias pwd="$tutils2path/pwd"
