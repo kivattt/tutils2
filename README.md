@@ -1,5 +1,7 @@
 Replacements for some coreutils on Linux, rewrite of [tutils](https://github.com/kivattt/tutils)
 
+<img src="screenshot.png" alt="hex, ls and xxd utilities">
+
 # Commands
 `ls` List files\
 `pwd` Print working directory\
