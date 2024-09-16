@@ -10,7 +10,7 @@ Replacements for some coreutils on Linux, rewrite of [tutils](https://github.com
 `countchars` Show distribution of characters sorted\
 
 # Building
-`./compile.sh`\
+`./compile.bash`\
 The built binaries will be located in the `bin` directory
 
 # Installing
@@ -18,7 +18,7 @@ The built binaries will be located in the `bin` directory
 cd
 git clone https://github.com/kivattt/tutils2
 cd tutils2
-./compile.sh
+./compile.bash
 ```
 Then add this to your `.bashrc` file, and re-open a terminal
 ```bash
