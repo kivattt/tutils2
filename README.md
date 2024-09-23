@@ -7,9 +7,9 @@ Replacements for some coreutils on Linux, rewrite of [tutils](https://github.com
 `pwd` Print working directory\
 `cat` Print files or STDIN\
 `hex` Encode/decode hexadecimal\
-`xxd` Visual as hex\
+`xxd` Visualize as hex\
 `ascii` Print ASCII-range bytes\
-`countchars` Show distribution of characters sorted\
+`countchars` Show distribution of characters sorted
 
 # Building
 `./compile.bash`\
