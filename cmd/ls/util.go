@@ -136,8 +136,8 @@ func FileColor(stat os.FileInfo, path string) string {
 	}
 
 	if hasSuffixFromList(path, codeTypes) {
-		return "\x1b[1;36m" // Cyan (Aqua)
-		//		return ret.Foreground(tcell.ColorAqua)
+		return "\x1b[0;34m" // Navy (darkish blue)
+		//		return ret.Foreground(tcell.ColorNavy)
 	}
 
 	if hasSuffixFromList(path, audioTypes) {
