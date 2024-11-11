@@ -121,13 +121,11 @@ func FileColor(stat os.FileInfo, path string) string {
 	}
 
 	if hasSuffixFromList(path, imageTypes) {
-		return "\x1b[1;33m" // Yellow
-		//		return ret.Foreground(tcell.ColorYellow)
+		return "\x1b[0;33m" // Dark yellow
 	}
 
 	if hasSuffixFromList(path, videoTypes) {
-		return "\x1b[1;35m" // Purple, Bold (Hot Pink)
-		//		return ret.Foreground(tcell.ColorHotPink)
+		return "\x1b[38;2;255;105;180m" // tcell.ColorHotPink
 	}
 
 	if hasSuffixFromList(path, archiveTypes) {
