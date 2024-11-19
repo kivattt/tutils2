@@ -61,6 +61,7 @@ func main() {
 	help := flag.Bool("help", false, "display this help and exit")
 	all := flag.Bool("all", false, "show hidden files starting with '.'")
 	directoriesFirst := flag.Bool("directories-first", false, "show directories first")
+	directory := flag.Bool("directory", false, "list directories themselves, not their contents")
 	sortBy := flag.String("sort-by", "none", "sort files ("+strings.Join(validSortByValues[:], ", ")+")")
 	summary := flag.Bool("summary", false, "folder stats")
 	color := flag.String("color", "auto", "colorize the output [auto, always, never]")
@@ -70,7 +71,7 @@ func main() {
 	getopt.Aliases(
 		"h", "help",
 		"a", "all",
-		"d", "directories-first",
+		"d", "directory",
 	)
 
 	err := getopt.CommandLine.Parse(os.Args[1:])
@@ -112,13 +113,13 @@ func main() {
 	var allEntries []fs.DirEntry
 
 	for _, path := range paths {
-		stat, err := os.Stat(path)
+		stat, err := os.Lstat(path)
 		if err != nil {
 			printError("Failed to stat: '"+path+"'", colorToUse != "never")
 			continue
 		}
 
-		if !stat.IsDir() {
+		if !stat.IsDir() || *directory {
 			allEntries = append(allEntries, fs.FileInfoToDirEntry(stat))
 			continue
 		}

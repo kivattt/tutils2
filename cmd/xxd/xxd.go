@@ -80,7 +80,7 @@ func handleBuf(buf []byte, size, width, nthLineOutput int, colorsEnabled, decima
 			if colorsEnabled {
 				fmt.Print(leadingZeroesGray(fmt.Sprintf(formatString, i+nthLineOutput*width)))
 			} else {
-				fmt.Print(fmt.Sprintf(formatString, i+nthLineOutput*width))
+				fmt.Printf(formatString, i+nthLineOutput*width)
 			}
 		}
 
