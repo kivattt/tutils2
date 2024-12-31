@@ -69,20 +69,20 @@ func PathWithEndSeparator(path string) string {
 	return path + string(os.PathSeparator)
 }
 
-func usage(programName string) {
-	fmt.Println("Usage: " + programName + " [bytes number]")
+func usage() {
+	fmt.Println("Usage: bytes [bytes number]")
 	fmt.Println("Show bytes in human-readable size")
 }
 
 func main() {
 	if len(os.Args) < 2 {
-		usage(os.Args[0])
+		usage()
 		os.Exit(0)
 	}
 
 	nBytes, err := strconv.Atoi(os.Args[1])
 	if err != nil {
-		usage(os.Args[0])
+		usage()
 		os.Exit(1)
 	}
 
