@@ -9,7 +9,7 @@ Replacements for some coreutils on Linux, rewrite of [tutils](https://github.com
 `hex` Encode/decode hexadecimal\
 `xxd` Visualize as hex\
 `ascii` Print ASCII-range bytes\
-`countchars` Show distribution of characters sorted
+`countchars` Show distribution of characters sorted\
 `bytes` Show bytes in human-readable size
 
 # Building
