@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/kivattt/getopt"
 	"golang.org/x/term"
@@ -20,14 +21,27 @@ func printPathError(path string, colorsEnabled bool) {
 	}
 }
 
+func tabsToSpaces(buf []byte) []byte {
+	ret := buf
+	for i, c := range ret {
+		if c == '\t' {
+			ret[i] = ' '
+			ret = slices.Insert(ret, i, []byte{' ', ' ', ' '}...)
+		}
+	}
+	return ret
+}
+
 func main() {
 	help := flag.Bool("help", false, "display this help and exit")
 	color := flag.String("color", "auto", "colorize stderr messages [auto, always, never]")
+	fourSpaces := flag.Bool("four", false, "turn tabs into 4 spaces")
 
 	getopt.CommandLine.SetOutput(os.Stdout)
 	getopt.CommandLine.Init("cat", flag.ExitOnError)
 	getopt.Aliases(
 		"h", "help",
+		"4", "four",
 	)
 
 	err := getopt.CommandLine.Parse(os.Args[1:])
@@ -61,7 +75,11 @@ func main() {
 			for {
 				n, err := f.Read(buf)
 
-				os.Stdout.Write(buf[:n])
+				if *fourSpaces {
+					os.Stdout.Write(tabsToSpaces(buf[:n]))
+				} else {
+					os.Stdout.Write(buf[:n])
+				}
 
 				// End of file
 				if err != nil {
@@ -79,7 +97,12 @@ func main() {
 	buf := make([]byte, 512)
 	for {
 		n, err := os.Stdin.Read(buf)
-		os.Stdout.Write(buf[:n])
+
+		if *fourSpaces {
+			os.Stdout.Write(tabsToSpaces(buf[:n]))
+		} else {
+			os.Stdout.Write(buf[:n])
+		}
 
 		// End of file
 		if err != nil {
