@@ -23,12 +23,15 @@ func printPathError(path string, colorsEnabled bool) {
 
 func tabsToSpaces(buf []byte) []byte {
 	ret := buf
-	for i, c := range ret {
-		if c == '\t' {
+
+	for i := 0; i < len(ret); i++ {
+		if ret[i] == '\t' {
 			ret[i] = ' '
 			ret = slices.Insert(ret, i, []byte{' ', ' ', ' '}...)
+			i += 3
 		}
 	}
+
 	return ret
 }
 
