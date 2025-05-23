@@ -7,18 +7,18 @@ import (
 )
 
 var colors = map[string]string{
-	"nothing": "",
-	"directory": "\x1b[1;34m", // Blue, Bold
-	"executable": "\x1b[1;32m", // Green, Bold
+	"nothing":           "",
+	"directory":         "\x1b[1;34m", // Blue, Bold
+	"executable":        "\x1b[1;32m", // Green, Bold
 	"symlink_directory": "\x1b[1;36m", // Cyan, Bold
-	"symlink": "\x1b[0;36m", // Cyan
+	"symlink":           "\x1b[0;36m", // Cyan
 
-	"image": "\x1b[0;33m", // Dark Yellow
-	"video": "\x1b[38;2;255;105;180m", // Pink
-	"archive": "\x1b[1;31m", // Red
-	"code": "\x1b[0;34m", // Navy (darkish blue)
-	"audio": "\x1b[0;35m", // Purple
-	"document": "\x1b[0;37m", // White
+	"image":    "\x1b[0;33m",             // Dark Yellow
+	"video":    "\x1b[38;2;255;105;180m", // Pink
+	"archive":  "\x1b[1;31m",             // Red
+	"code":     "\x1b[0;34m",             // Navy (darkish blue)
+	"audio":    "\x1b[0;35m",             // Purple
+	"document": "\x1b[0;37m",             // White
 }
 
 var imageTypes = []string{
