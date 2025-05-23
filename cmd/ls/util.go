@@ -6,6 +6,21 @@ import (
 	"strings"
 )
 
+var colors = map[string]string{
+	"nothing": "",
+	"directory": "\x1b[1;34m", // Blue, Bold
+	"executable": "\x1b[1;32m", // Green, Bold
+	"symlink_directory": "\x1b[1;36m", // Cyan, Bold
+	"symlink": "\x1b[0;36m", // Cyan
+
+	"image": "\x1b[0;33m", // Dark Yellow
+	"video": "\x1b[38;2;255;105;180m", // Pink
+	"archive": "\x1b[1;31m", // Red
+	"code": "\x1b[0;34m", // Navy (darkish blue)
+	"audio": "\x1b[0;35m", // Purple
+	"document": "\x1b[0;37m", // White
+}
+
 var imageTypes = []string{
 	".png",
 	".jpg",
@@ -94,7 +109,13 @@ var windowsExecutableTypes = []string{
 	".msi",
 }
 
+// stat should be from an os.Lstat()
 func FileColor(stat os.FileInfo, path string) string {
+	if stat == nil {
+		return colors["nothing"]
+		//return tcell.StyleDefault
+	}
+
 	hasSuffixFromList := func(str string, list []string) bool {
 		for _, e := range list {
 			if strings.HasSuffix(strings.ToLower(str), e) {
@@ -105,51 +126,58 @@ func FileColor(stat os.FileInfo, path string) string {
 		return false
 	}
 
-	if stat != nil {
-		if stat.IsDir() {
-			return "\x1b[1;34m" // Blue, Bold
-			//			return ret.Foreground(tcell.ColorBlue).Bold(true)
-		} else if stat.Mode().IsRegular() {
-			if stat.Mode()&0111 != 0 || (runtime.GOOS == "windows" && hasSuffixFromList(path, windowsExecutableTypes)) { // Executable file
-				return "\x1b[1;32m" // Green, Bold
-				//				return ret.Foreground(tcell.NewRGBColor(0, 255, 0)).Bold(true) // Green
-			}
-		} else {
-			return "\x1b[1;30m" // Black, Bold (Dark Gray)
-			//			return ret.Foreground(tcell.ColorDarkGray)
+	if stat.IsDir() {
+		return colors["directory"]
+		//return ret.Foreground(tcell.ColorBlue).Bold(true)
+	} else if stat.Mode().IsRegular() {
+		if stat.Mode()&0111 != 0 || (runtime.GOOS == "windows" && hasSuffixFromList(path, windowsExecutableTypes)) { // Executable file
+			return colors["executable"]
+			//return ret.Foreground(tcell.NewRGBColor(0, 255, 0)).Bold(true) // Green
 		}
+	} else if stat.Mode()&os.ModeSymlink != 0 {
+		targetStat, err := os.Stat(path)
+		if err == nil && targetStat.IsDir() {
+			return colors["symlink_directory"]
+			//return ret.Foreground(tcell.ColorTeal).Bold(true)
+		}
+
+		return colors["symlink"]
+		//return ret.Foreground(tcell.ColorTeal)
+	} else {
+		// Should not happen?
+		return colors["nothing"]
 	}
 
 	if hasSuffixFromList(path, imageTypes) {
-		return "\x1b[0;33m" // Dark yellow
+		return colors["image"]
 	}
 
 	if hasSuffixFromList(path, videoTypes) {
-		return "\x1b[38;2;255;105;180m" // tcell.ColorHotPink
+		return colors["video"]
+		//return ret.Foreground(tcell.ColorHotPink)
 	}
 
 	if hasSuffixFromList(path, archiveTypes) {
-		return "\x1b[1;31m" // Red
-		//		return ret.Foreground(tcell.ColorRed)
+		return colors["archive"]
+		//return ret.Foreground(tcell.ColorRed)
 	}
 
 	if hasSuffixFromList(path, codeTypes) {
-		return "\x1b[0;34m" // Navy (darkish blue)
-		//		return ret.Foreground(tcell.ColorNavy)
+		return colors["code"]
+		//return ret.Foreground(tcell.ColorNavy)
 	}
 
 	if hasSuffixFromList(path, audioTypes) {
-		return "\x1b[0;35m" // Purple
-		//		return ret.Foreground(tcell.ColorPurple)
+		return colors["audio"]
+		//return ret.Foreground(tcell.ColorPurple)
 	}
 
 	if hasSuffixFromList(path, documentTypes) {
-		return "\x1b[0;37m" // White
-		//		return ret.Foreground(tcell.ColorGray)
+		return colors["document"]
+		//return ret.Foreground(tcell.ColorGray)
 	}
 
-	return "" // Nothing (default)
-	//	return ret.Foreground(tcell.ColorDefault)
+	return colors["nothing"]
 }
 
 func FoldersAtBeginning(entries []os.DirEntry) []os.DirEntry {

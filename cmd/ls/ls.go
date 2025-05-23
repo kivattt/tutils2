@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/kivattt/getopt"
+	"github.com/kivattt/gogitstatus"
 	"golang.org/x/term"
 )
 
@@ -65,6 +66,9 @@ func main() {
 	sortBy := flag.String("sort-by", "none", "sort files ("+strings.Join(validSortByValues[:], ", ")+")")
 	summary := flag.Bool("summary", false, "folder stats")
 	color := flag.String("color", "auto", "colorize the output [auto, always, never]")
+	demo := flag.Bool("demo", false, "show all the file colors")
+	gitStatus := flag.Bool("git-status", false, "highlight changed/untracked files from current working directory")
+	gitStatusDetailed := flag.Bool("git-status-detailed", false, "show more info about changed/untracked files")
 
 	getopt.CommandLine.SetOutput(os.Stdout)
 	getopt.CommandLine.Init("ls", flag.ExitOnError)
@@ -94,6 +98,20 @@ func main() {
 		}
 	}
 
+	if *demo {
+		for key, val := range colors {
+			if colorToUse != "never" {
+				fmt.Print(val)
+			}
+			fmt.Println(key)
+			if colorToUse != "never" {
+				fmt.Print("\x1b[0m") // Reset color
+			}
+		}
+
+		os.Exit(0)
+	}
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		cwd = os.Getenv("PWD")
@@ -111,6 +129,7 @@ func main() {
 	}
 
 	var allEntries []fs.DirEntry
+	longestEntryBasename := 0
 
 	for _, path := range paths {
 		stat, err := os.Lstat(path)
@@ -120,6 +139,7 @@ func main() {
 		}
 
 		if !stat.IsDir() || *directory {
+			longestEntryBasename = max(longestEntryBasename, len(stat.Name()))
 			allEntries = append(allEntries, fs.FileInfoToDirEntry(stat))
 			continue
 		}
@@ -130,6 +150,9 @@ func main() {
 			continue
 		}
 
+		for _, entry := range entries {
+			longestEntryBasename = max(longestEntryBasename, len(entry.Name()))
+		}
 		allEntries = append(allEntries, entries...)
 	}
 
@@ -180,6 +203,12 @@ func main() {
 		allEntries = FoldersAtBeginning(allEntries)
 	}
 
+	var changedOrUntracked map[string]gogitstatus.ChangedFile
+	if *gitStatus {
+		changedOrUntracked, _ = gogitstatus.Status(".")
+		changedOrUntracked = gogitstatus.IncludingDirectories(changedOrUntracked)
+	}
+
 	for _, e := range allEntries {
 		if !*all && strings.HasPrefix(e.Name(), ".") {
 			continue
@@ -191,11 +220,58 @@ func main() {
 			continue
 		}
 
+		// FIXME: Check correct parent folder first, e.g. with filepath.Rel() ?
+		changedFile, ok := changedOrUntracked[e.Name()]
+
 		if colorToUse != "never" {
-			fmt.Print(FileColor(info, e.Name()))
+			if ok {
+				fmt.Print("\x1b[0;31m") // Red background
+			} else {
+				fmt.Print(FileColor(info, e.Name()))
+			}
 		}
 
-		fmt.Println(e.Name())
+		if ok && *gitStatusDetailed {
+			fmt.Print(e.Name())
+			if colorToUse != "never" {
+				fmt.Print("\x1b[0m")
+			}
+
+			nSpaces := 1 + longestEntryBasename - len(e.Name())
+			spaces := strings.Repeat(" ", nSpaces)
+
+			whatChanged := gogitstatus.WhatChangedToString(changedFile.WhatChanged)
+			nSpaces2nd := 1 + len("OWNER_CHANGED") - len(whatChanged) // "OWNER_CHANGED" is the longest possible
+			spaces2nd := strings.Repeat(" ", nSpaces2nd)
+
+			if changedFile.Untracked {
+				fmt.Print(spaces + whatChanged + spaces2nd)
+				if colorToUse != "never" {
+					fmt.Print("\x1b[0;31m") // Red
+				}
+				fmt.Print("untracked")
+				if colorToUse != "never" {
+					fmt.Print("\x1b[0m")
+				}
+				fmt.Println()
+			} else {
+				fmt.Print(spaces + whatChanged + spaces2nd)
+				if colorToUse != "never" {
+					fmt.Print("\x1b[38;2;254;229;65m") // Yellow
+				}
+				fmt.Print("unstaged")
+				if colorToUse != "never" {
+					fmt.Print("\x1b[0m")
+				}
+				fmt.Println()
+			}
+		} else {
+			fmt.Print(e.Name())
+			if colorToUse != "never" {
+				fmt.Print("\x1b[0m")
+			}
+			fmt.Println()
+		}
 
 		if colorToUse != "never" {
 			fmt.Print("\x1b[0m")
