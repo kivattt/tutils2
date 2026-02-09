@@ -10,7 +10,8 @@ Replacements for some coreutils on Linux, rewrite of [tutils](https://github.com
 `xxd` Visualize as hex\
 `ascii` Print ASCII-range bytes\
 `countchars` Show distribution of characters sorted\
-`bytes` Show bytes in human-readable size
+`bytes` Show bytes in human-readable size\
+`dirstats` Show amount of files/folders/path lengths in a directory
 
 # Building
 `./compile.bash`\
@@ -35,6 +36,7 @@ if test -d $tutils2path; then
     alias ascii="$tutils2path/ascii"
     alias countchars="$tutils2path/countchars"
     alias bytes="$tutils2path/bytes"
+    alias dirstats="$tutils2path/dirstats"
 else
     echo "Could not find tutils2 programs in $tutils2path"
 fi

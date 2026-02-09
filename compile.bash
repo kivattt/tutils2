@@ -15,3 +15,4 @@ CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/countchars && mv ./countchars .
 CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/cat && mv ./cat ./bin/cat
 CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/hex && mv ./hex ./bin/hex
 CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/bytes && mv ./bytes ./bin/bytes
+CGO_ENABLED=0 go build -ldflags="$ldflags" ./cmd/dirstats && mv ./dirstats ./bin/dirstats
