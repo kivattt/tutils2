@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 bin=./bin
 
 if [ ! -d $bin ]; then
