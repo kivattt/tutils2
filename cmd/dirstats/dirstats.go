@@ -90,7 +90,12 @@ func GetDirStats(path string) (DirStats, []DirStats, error) {
 	interval := 10
 	i := 0
 
-	err := myWalkDir(path, func(path string, d fs.DirEntry, err error) error {
+	_, err := os.Lstat(path)
+	if err != nil {
+		return out, graphOut, err
+	}
+
+	err = myWalkDir(path, func(path string, d fs.DirEntry, err error) error {
 		if i%interval == 0 {
 			out.indexForCSV = i
 
@@ -102,12 +107,12 @@ func GetDirStats(path string) (DirStats, []DirStats, error) {
 		}
 		i++
 
-		if d.Name() == "." {
+		if err != nil {
+			out.numErrors++
 			return nil
 		}
 
-		if err != nil {
-			out.numErrors++
+		if d.Name() == "." {
 			return nil
 		}
 
@@ -115,37 +120,42 @@ func GetDirStats(path string) (DirStats, []DirStats, error) {
 
 		if d.IsDir() {
 			out.numFolders++
-
-		} else if d.Type().IsRegular() /*FIXME: Does not correctly identify plain files*/ {
+		} else if d.Type().IsRegular() {
 			out.numFiles++
-			if d.Type().Perm()&0111 != 0 { // If any (owner, group, other) bits are executable
+
+			stat, err := d.Info()
+			if err != nil {
+				out.numErrors++
+				return nil
+			}
+
+			if stat.Mode()&0111 != 0 { // If any (owner, group, other) bits are executable
 				out.numExecutables++
-				// handle ELF file case
-				buffer := [4]byte{0, 0, 0, 0}
 
-				elf_header := [4]byte{0x7F, 'E', 'L', 'F'}
+				if stat.Size() >= 4 {
+					// handle ELF file case
+					buffer := []byte{0, 0, 0, 0}
+					elfHeader := []byte{0x7F, 'E', 'L', 'F'}
 
-				f, err := os.Open(path)
-				defer f.Close()
-				if err != nil {
-					out.numErrors++
-					return nil
-				}
+					f, err := os.Open(path)
+					if err != nil {
+						out.numErrors++
+						return nil
+					}
+					defer f.Close()
 
-				file_len, err := f.Read(buffer[:])
-				if err != nil {
-					out.numErrors++
-					return nil
-				}
+					n, err := f.Read(buffer)
+					if err != nil || n != 4 {
+						fmt.Println("Failed to read the 4 bytes...")
+						return nil
+					}
 
-				slice_upper := int(math.Min(float64(len(elf_header)), float64(file_len)))
-
-				if slices.Equal(buffer[0:slice_upper], elf_header[0:slice_upper]) {
-					out.numExecutablesThatAreELF += 1
+					if slices.Equal(buffer, elfHeader) {
+						out.numExecutablesThatAreELF++
+					}
 				}
 			}
 		} else {
-			// FIXME: This branch has no symlinks
 			out.numSymlinks++
 		}
 
@@ -167,6 +177,7 @@ func GetDirStats(path string) (DirStats, []DirStats, error) {
 
 		return nil
 	})
+
 	if err != nil {
 		return out, graphOut, err
 	}
@@ -186,42 +197,53 @@ func colorNumber(n int) string {
 	return colorOfNumber(n) + strconv.Itoa(n) + "\x1b[0m"
 }
 
+func usage(programName string) {
+	fmt.Println("Usage:", programName, "[OPTIONS] [directory]")
+	fmt.Println("OPTIONS:")
+	fmt.Println("\t--help, -h  Show this help message")
+	fmt.Println("\t--csv       Output data in CSV format, timeline of the directory walk")
+}
+
 func main() {
-	stats, graph, err := GetDirStats(".")
+	programName := os.Args[0]
+	if len(os.Args) < 2 {
+		usage(programName)
+		os.Exit(0)
+	}
+
+	outputAsCSV := false
+
+	path := ""
+	for i := 1; i < len(os.Args); i++ {
+		arg := os.Args[i]
+		if arg == "--help" || arg == "-h" {
+			usage(programName)
+			os.Exit(0)
+		} else if arg == "--csv" {
+			outputAsCSV = true
+		} else {
+			path = arg
+		}
+	}
+
+	if path == "" {
+		usage(programName)
+		os.Exit(0)
+	}
+
+	stats, graph, err := GetDirStats(path)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	reset := "\x1b[0m"
-	gray := "\x1b[0;37m"
+	// Make sure we don't output something dumb
+	if stats.minPathLen == 2147483647 {
+		stats.minPathLen = 0
+	}
 
-	fmt.Println(gray+"total entries including folders:", colorNumber(stats.totalEntriesIncludingFolders))
-	fmt.Println(gray+"number of errors:", colorNumber(stats.numErrors))
-	fmt.Println("")
-
-	fmt.Println(gray+"sum path length:", colorNumber(stats.sumPathLen))
-	fmt.Println(gray+"max path length:", colorNumber(stats.maxPathLen))
-	fmt.Println(gray+"min path length:", colorNumber(stats.minPathLen))
-	fmt.Println(gray+"avg path length:", colorNumber(stats.avgPathLen))
-	fmt.Println("")
-
-	fmt.Println(gray+"folders:     ", colorNumber(stats.numFolders))
-	fmt.Println(gray+"files:       ", colorNumber(stats.numFiles))
-	fmt.Println(gray+"symlinks:    ", colorNumber(stats.numSymlinks))
-	fmt.Println(gray+"hidden files:", colorNumber(stats.numHiddenFiles))
-	fmt.Println("")
-
-	fmt.Println(gray+"total file size:", colorOfNumber(stats.totalFileSize), BytesToHumanReadableUnitString(uint64(stats.totalFileSize), -1), reset)
-
-	// TODO: executables when the are correctly idenitified
-	// # of which are ELF executables: (header)
-	// fmt.Println(gray+"all executables:", colorNumber(stats.numExecutables))
-	// fmt.Println(gray+"elf executables:", colorNumber(stats.numExecutablesThatAreELF))
-
-	if false {
-		// CSV
-		fmt.Println("index,# entries incl. folders,# errors,max path len,min path len,avg path len,sum path len,# folders,# files,# symlinks,# hidden files,total file size")
+	if outputAsCSV {
+		fmt.Println("index,# entries incl. folders,# errors,max path len,min path len,avg path len,sum path len,# folders,# files,# symlinks,# hidden files,# executable files (mode),# ELF executable files (ELF header & mode),total file size")
 		for _, e := range graph {
 			fmt.Print(e.indexForCSV, ",")
 			fmt.Print(e.totalEntriesIncludingFolders, ",")
@@ -234,8 +256,37 @@ func main() {
 			fmt.Print(e.numFiles, ",")
 			fmt.Print(e.numSymlinks, ",")
 			fmt.Print(e.numHiddenFiles, ",")
+			fmt.Print(e.numExecutables, ",")
+			fmt.Print(e.numExecutablesThatAreELF, ",")
 
 			fmt.Println(e.totalFileSize)
 		}
+	} else {
+		reset := "\x1b[0m"
+		gray := "\x1b[0;37m"
+
+		fmt.Println(gray+"total entries including folders:", colorNumber(stats.totalEntriesIncludingFolders))
+		fmt.Println(gray+"number of errors:", colorNumber(stats.numErrors))
+		fmt.Println("")
+
+		fmt.Println(gray+"sum path length:", colorNumber(stats.sumPathLen))
+		fmt.Println(gray+"max path length:", colorNumber(stats.maxPathLen))
+		fmt.Println(gray+"min path length:", colorNumber(stats.minPathLen))
+		fmt.Println(gray+"avg path length:", colorNumber(stats.avgPathLen))
+		fmt.Println("")
+
+		fmt.Println(gray+"folders:     ", colorNumber(stats.numFolders))
+		fmt.Println(gray+"files:       ", colorNumber(stats.numFiles))
+		fmt.Println(gray+"symlinks:    ", colorNumber(stats.numSymlinks))
+		fmt.Println(gray+"hidden files:", colorNumber(stats.numHiddenFiles))
+		fmt.Println("")
+
+		// TODO: executables when the are correctly idenitified
+		// # of which are ELF executables: (header)
+		fmt.Println(gray+"num executable:", colorNumber(stats.numExecutables))
+		fmt.Println(gray+"num executable (ELF):", colorNumber(stats.numExecutablesThatAreELF))
+		fmt.Println("")
+
+		fmt.Println(gray+"total file size:", colorOfNumber(stats.totalFileSize), BytesToHumanReadableUnitString(uint64(stats.totalFileSize), -1), reset)
 	}
 }
