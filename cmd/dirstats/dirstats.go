@@ -200,8 +200,9 @@ func colorNumber(n int) string {
 func usage(programName string) {
 	fmt.Println("Usage:", programName, "[OPTIONS] [directory]")
 	fmt.Println("OPTIONS:")
-	fmt.Println("\t--help, -h  Show this help message")
-	fmt.Println("\t--csv       Output data in CSV format, timeline of the directory walk")
+	fmt.Println("\t--help, -h      Show this help message")
+	fmt.Println("\t--csv           Output data in CSV format")
+	fmt.Println("\t--csv-timeline  Output data in CSV format, timeline of the directory walk")
 }
 
 func main() {
@@ -212,6 +213,7 @@ func main() {
 	}
 
 	outputAsCSV := false
+	outputAsCSVTimeline := false
 
 	path := ""
 	for i := 1; i < len(os.Args); i++ {
@@ -221,6 +223,8 @@ func main() {
 			os.Exit(0)
 		} else if arg == "--csv" {
 			outputAsCSV = true
+		} else if arg == "--csv-timeline" {
+			outputAsCSVTimeline = true
 		} else {
 			path = arg
 		}
@@ -242,25 +246,32 @@ func main() {
 		stats.minPathLen = 0
 	}
 
-	if outputAsCSV {
+	printCSVLine := func(stats DirStats) {
+		fmt.Print(stats.indexForCSV, ",")
+		fmt.Print(stats.totalEntriesIncludingFolders, ",")
+		fmt.Print(stats.numErrors, ",")
+		fmt.Print(stats.maxPathLen, ",")
+		fmt.Print(stats.minPathLen, ",")
+		fmt.Print(stats.avgPathLen, ",")
+		fmt.Print(stats.sumPathLen, ",")
+		fmt.Print(stats.numFolders, ",")
+		fmt.Print(stats.numFiles, ",")
+		fmt.Print(stats.numSymlinks, ",")
+		fmt.Print(stats.numHiddenFiles, ",")
+		fmt.Print(stats.numExecutables, ",")
+		fmt.Print(stats.numExecutablesThatAreELF, ",")
+
+		fmt.Println(stats.totalFileSize)
+	}
+
+	if outputAsCSVTimeline {
 		fmt.Println("index,# entries incl. folders,# errors,max path len,min path len,avg path len,sum path len,# folders,# files,# symlinks,# hidden files,# executable files (mode),# ELF executable files (ELF header & mode),total file size")
 		for _, e := range graph {
-			fmt.Print(e.indexForCSV, ",")
-			fmt.Print(e.totalEntriesIncludingFolders, ",")
-			fmt.Print(e.numErrors, ",")
-			fmt.Print(e.maxPathLen, ",")
-			fmt.Print(e.minPathLen, ",")
-			fmt.Print(e.avgPathLen, ",")
-			fmt.Print(e.sumPathLen, ",")
-			fmt.Print(e.numFolders, ",")
-			fmt.Print(e.numFiles, ",")
-			fmt.Print(e.numSymlinks, ",")
-			fmt.Print(e.numHiddenFiles, ",")
-			fmt.Print(e.numExecutables, ",")
-			fmt.Print(e.numExecutablesThatAreELF, ",")
-
-			fmt.Println(e.totalFileSize)
+			printCSVLine(e)
 		}
+	} else if outputAsCSV {
+		fmt.Println("index,# entries incl. folders,# errors,max path len,min path len,avg path len,sum path len,# folders,# files,# symlinks,# hidden files,# executable files (mode),# ELF executable files (ELF header & mode),total file size")
+		printCSVLine(stats)
 	} else {
 		reset := "\x1b[0m"
 		gray := "\x1b[0;37m"
