@@ -14,7 +14,7 @@ Replacements for some coreutils on Linux, rewrite of [tutils](https://github.com
 `dirstats` Show amount of files/folders/path lengths in a directory
 
 # Building
-`./compile.bash`\
+`./compile.sh`\
 The built binaries will be located in the `bin` directory
 
 # Installing
@@ -22,7 +22,7 @@ The built binaries will be located in the `bin` directory
 cd
 git clone https://github.com/kivattt/tutils2
 cd tutils2
-./compile.bash
+./compile.sh
 ```
 Then add this to your `.bashrc` file, and re-open a terminal
 ```bash
