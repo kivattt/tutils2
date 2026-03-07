@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"math"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -114,14 +115,38 @@ func GetDirStats(path string) (DirStats, []DirStats, error) {
 
 		if d.IsDir() {
 			out.numFolders++
-		} else if d.Type().IsRegular() {
+
+		} else if d.Type().IsRegular() /*FIXME: Does not correctly identify plain files*/ {
 			out.numFiles++
 			if d.Type().Perm()&0111 != 0 { // If any (owner, group, other) bits are executable
 				out.numExecutables++
-				// TODO: Check for ELF header for out.numExecutablesThatAreELF
+				// handle ELF file case
+				buffer := [4]byte{0, 0, 0, 0}
+
+				elf_header := [4]byte{0x7F, 'E', 'L', 'F'}
+
+				f, err := os.Open(path)
+				defer f.Close()
+				if err != nil {
+					out.numErrors++
+					return nil
+				}
+
+				file_len, err := f.Read(buffer[:])
+				if err != nil {
+					out.numErrors++
+					return nil
+				}
+
+				slice_upper := int(math.Min(float64(len(elf_header)), float64(file_len)))
+
+				if slices.Equal(buffer[0:slice_upper], elf_header[0:slice_upper]) {
+					out.numExecutablesThatAreELF += 1
+				}
 			}
 		} else {
-			out.numSymlinks++ // FIXME: Not sure if this is correct
+			// FIXME: This branch has no symlinks
+			out.numSymlinks++
 		}
 
 		out.maxPathLen = max(out.maxPathLen, len(path))
@@ -189,9 +214,10 @@ func main() {
 
 	fmt.Println(gray+"total file size:", colorOfNumber(stats.totalFileSize), BytesToHumanReadableUnitString(uint64(stats.totalFileSize), -1), reset)
 
-	// TODO:
-	// executables:
+	// TODO: executables when the are correctly idenitified
 	// # of which are ELF executables: (header)
+	// fmt.Println(gray+"all executables:", colorNumber(stats.numExecutables))
+	// fmt.Println(gray+"elf executables:", colorNumber(stats.numExecutablesThatAreELF))
 
 	if false {
 		// CSV
